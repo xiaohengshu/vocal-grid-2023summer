@@ -1,0 +1,26 @@
+name: Build
+on: [push, workflow_call, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Less.js
+        run: npm install -g less
+      - name: Build less
+        run: lessc html/document.less html/document.css
+      - name: Build dist
+        run: |
+          mkdir dist
+          cp html/*.css html/*.html html/*.js simple.jpg dist
+      - name: Release dist
+        uses: actions/upload-artifact@v3
+        with:
+          name: vocal-grid-2023summer
+          path: dist
+          if-no-files-found: error

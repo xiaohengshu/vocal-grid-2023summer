@@ -40,6 +40,9 @@ button{
     max-width: var(--main-width);
     margin: 0 auto;
     padding: 10px 0;
+    .generator-btn{
+        margin-top: 8px;
+    }
 }
 footer{
     padding: 80px 0;
@@ -69,9 +72,14 @@ footer{
     border-radius: 4px;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0,0,0,.05);
-    &.current{
-        background: #222;
+    &.go{
         color: #FFF;
+        background: #39c5bb;
+        border: 2px solid #eee;
+    }
+    &.danger{
+        color: #cf222e;
+        border: 2px solid #cf222e;
     }
 }
 [data-show="false"]{
@@ -146,6 +154,7 @@ footer{
     padding: 4px;
     max-width: 512px;
     overflow: hidden;
+    display: none;
     .anime-item{
         float: left;
         width: 120px;

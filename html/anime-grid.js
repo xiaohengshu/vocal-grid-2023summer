@@ -1,45 +1,5 @@
 const htmlEl = document.documentElement;
 
-const Caches = {};
-const get = async (url)=>{
-
-    if(Caches[url]) return Caches[url];
-    htmlEl.setAttribute('data-no-touch',true);
-    const f = await fetch(url);
-    const data = await f.json();
-    Caches[url] = data;
-    htmlEl.setAttribute('data-no-touch',false);
-    return data;
-}
-
-
-
-
-const Images = {};
-
-const loadImage = (src,onOver)=>{
-    if(Images[src]) return onOver(Images[src]);
-    const el = new Image();
-    el.crossOrigin = 'Anonymous';
-    el.src = src;
-    el.onload = ()=>{
-        onOver(el)
-        Images[src] = el;
-    }
-};
-
-
-const APIURL = `https://lab.magiconch.com/api/bangumi/`;
-const ImageURL = `https://api.anitabi.cn/bgm/`;
-
-
-const getCoverURLById = id => `${ImageURL}anime/${id}/cover.jpg`;
-
-
-
-
-
-
 class AnimeGrid {
     constructor({el,title,key,typeTexts,col,row,urlExt = ''}){
         this.el = el;
@@ -67,20 +27,11 @@ class AnimeGrid {
         this.searchBoxEl = el.querySelector('.search-bangumis-box');
         this.formEl = el.querySelector('form');
         this.searchInputEl = this.formEl[0];
-        this.animeListEl = el.querySelector('.anime-list');
 
-
-        this.animeListEl.onclick = e=>{
-            const id = +e.target.getAttribute('data-id');
-            if(this.currentBangumiIndex === null) return;
-            this.setCurrentBangumi(id);
-        };
         this.formEl.onsubmit = async e=>{
             if(e) e.preventDefault();
-        
-            const keyword = this.searchInputEl.value.trim();
-        
-            this.searchFromAPI(keyword);
+
+            this.setInputText();
         }
 
         const canvas = el.querySelector('canvas');
@@ -93,8 +44,8 @@ class AnimeGrid {
 
 
 
-        const contentWidth = col * 120;
-        const contentHeight = row * 187;
+        const contentWidth = col * 200;
+        const contentHeight = row * 110;
 
         const colWidth = Math.ceil(contentWidth / col);
         const rowHeight = Math.ceil(contentHeight / row);
@@ -118,10 +69,8 @@ class AnimeGrid {
         );
 
         const copyRightText = [
-            'lab.magiconch.com/anime-grid' + urlExt,
-            '@卜卜口',
-            '神奇海螺试验场',
-            '动画信息来自番组计划',
+            urlExt,
+            '修改自github.com/itorr/anime-grid@卜卜口',
             '禁止商业、盈利用途'
         ].join(' · ');
 
@@ -153,6 +102,7 @@ class AnimeGrid {
 
 
         ctx.font = 'bold 32px sans-serif';
+        ctx.fillStyle = '#39c5bb';
         ctx.fillText(title,contentWidth / 2, -26 );
 
 
@@ -212,7 +162,7 @@ class AnimeGrid {
         this.rowHeight = rowHeight;
         this.canvasRatio = canvasRatio;
         
-        ctx.font = 'bold 32px sans-serif';
+        ctx.font = 'bold 28px sans-serif';
         
         this.outputEl = el.querySelector('.output-box');
         this.outputImageEl = this.outputEl.querySelector('img');
@@ -254,19 +204,18 @@ class AnimeGrid {
     generatorHTML({title}){
         return `<canvas></canvas>
 <div class="ctrl-box">
-    <a class="generator-btn ui-btn" action="downloadImage">生成${title}</a>
+    <a class="generator-btn ui-btn go" action="downloadImage">生成${title}</a>
+    <a class="generator-btn ui-btn danger" action="clearAll">全部清空</a>
 </div>
 <div class="search-bangumis-box ui-shadow" data-show="false">
     <div class="content-box">
         <form>
-            <input type="text" placeholder="输入关键词、回车查找动画">
+            <input type="textarea" placeholder="输入歌名、回车键确认填入">
         </form>
-        <div class="anime-list"></div>
         <div class="foot">
-            <a class="close ui-btn" action="searchFromBangumi">在番组计划搜索</a>
-            <a class="close ui-btn" action="setInputText">没找到，就用搜索框里的文字了</a>
-            <a class="close ui-btn" action="setNull">重设为空</a>
-            <a class="close ui-btn current" action="closeSearchBox">关闭选框</a>
+            <a class="close ui-btn go" action="setInputText">确认填入</a>
+            <a class="close ui-btn danger" action="setNull">重设为空</a>
+            <a class="close ui-btn" action="closeSearchBox">取消</a>
         </div>
     </div>
 </div>
@@ -275,10 +224,10 @@ class AnimeGrid {
         <h3>生成好啦~</h3>
         <img>
         <div class="body">
-            <p>在 微博、微信、企鹅 应用中，请长按图片进行保存</p>
+            <p>长按图片进行保存</p>
         </div>
         <div class="foot">
-            <a class="close ui-btn current" action="closeOutput">关闭</a>
+            <a class="close ui-btn" action="closeOutput">关闭</a>
         </div>
     </div>
 </div>`;
@@ -298,12 +247,19 @@ class AnimeGrid {
 
         if(!bangumisText) return this.generatorDefaultBangumis();
 
-        this.bangumis = bangumisText.split(/,/g).map(i=>/^\d+$/.test(i) ? +i : i);
+        this.bangumis = bangumisText.split(/,/g);
     }
     saveBangumisToLocalStorage(){
         localStorage.setItem(this.key,this.getBangumiIdsText());
     }
-
+    clearBangumisFromLocalStorage(){
+        localStorage.removeItem(this.key);
+    }
+    clearAll(){
+        this.clearBangumisFromLocalStorage();
+        this.generatorDefaultBangumis();
+        this.drawBangumis();
+    }
 
 
     openSearchBox(index){
@@ -315,10 +271,9 @@ class AnimeGrid {
 
         const value = this.bangumis[index] || '';
 
-        if(!/^\d+$/.test(value)){
+        if(value && value!=='0'){
             this.searchInputEl.value = value;
         }
-        this.searchFromAPI();
     }
     closeSearchBox(){
         htmlEl.setAttribute('data-no-scroll',false);
@@ -327,8 +282,7 @@ class AnimeGrid {
     }
     
     setInputText(){
-        const text = this.searchInputEl.value.trim().replace(/,/g,'');
-        if(!text) return this.searchInputEl.focus();
+        const text = this.searchInputEl.value.trim().replace(/,/g,'&');
         this.setCurrentBangumi(text);
     }
     setNull(){
@@ -343,37 +297,6 @@ class AnimeGrid {
         this.drawBangumis();
 
         this.closeSearchBox();
-    }
-
-
-    async searchFromBangumiByKeyword(keyword){
-        let url = `${APIURL}anime/onlines`;
-        if(keyword) url = url + `?keyword=${encodeURIComponent(keyword)}`;
-
-        const animes = await get(url);
-        this.resetAnimeList(animes);
-    }
-
-    searchFromBangumi(){
-        const keyword = this.searchInputEl.value.trim();
-        if(!keyword) return this.searchInputEl.focus();
-
-        this.searchFromBangumiByKeyword(keyword);
-    }
-
-
-    async searchFromAPI(keyword){
-        let url = `${APIURL}animes`;
-        if(keyword) url = url + `?keyword=${encodeURIComponent(keyword)}`;
-
-        const animes = await get(url);
-        this.resetAnimeList(animes);
-    }
-
-    resetAnimeList(animes){
-        this.animeListEl.innerHTML = animes.map(anime=>{
-            return `<div class="anime-item" data-id="${anime.id}"><img src="${getCoverURLById(anime.id)}" crossOrigin="Anonymous"><h3>${anime.title}</h3></div>`;
-        }).join('');
     }
 
     drawBangumis(){
@@ -391,75 +314,30 @@ class AnimeGrid {
             const x = index % col;
             const y = Math.floor(index / col);
 
-            if(!id){
-                ctx.save();
-                ctx.fillStyle = '#FFF';
-                ctx.fillRect(
-                    x * colWidth + 1,
-                    y * rowHeight + 1, 
-                    imageWidth,
-                    imageHeight,
-                )
-                ctx.fillStyle = '#d3d3d3';
-                ctx.fillRect(
-                    x * colWidth + 1,
-                    y * rowHeight + imageHeight - 1, 
-                    imageWidth,
-                    2,
-                )
-                ctx.restore();
-                continue;
-            }
-    
-            if(!/^\d+$/.test(id)){ // 非数字
-    
-                ctx.save();
-                ctx.fillStyle = '#FFF';
-                ctx.fillRect(
-                    x * colWidth + 1,
-                    y * rowHeight + 1, 
-                    imageWidth,
-                    imageHeight,
-                )
-                ctx.restore();
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(
+                x * colWidth + 1,
+                y * rowHeight + 1, 
+                imageWidth,
+                imageHeight,
+            )
+            if(id && id !== '0'){
+                ctx.fillStyle = '#39c5bb';
                 ctx.fillText(
                     id,
                     (x + 0.5) * colWidth,
-                    (y + 0.5) * rowHeight - 4, 
+                    (y + 0.5) * rowHeight - 10, 
                     imageWidth - 10,
                 );
-                continue;
             }
             
-            loadImage(getCoverURLById(id),el=>{
-                const { naturalWidth, naturalHeight } = el;
-                const originRatio = el.naturalWidth / el.naturalHeight;
-    
-                let sw, sh, sx, sy;
-                if(originRatio < canvasRatio){
-                    sw = naturalWidth
-                    sh = naturalWidth / imageWidth * imageHeight;
-                    sx = 0
-                    sy = (naturalHeight - sh)
-                }else{
-                    sh = naturalHeight
-                    sw = naturalHeight / imageHeight * imageWidth;
-                    sx = (naturalWidth - sw)
-                    sy = 0
-                }
-    
-                ctx.drawImage(
-                    el,
-                    
-                    sx, sy,
-                    sw, sh, 
-    
-                    x * colWidth + 1,
-                    y * rowHeight + 1, 
-                    imageWidth,
-                    imageHeight,
-                );
-            })
+            ctx.fillStyle = '#d3d3d3';
+            ctx.fillRect(
+                x * colWidth + 1,
+                y * rowHeight + imageHeight - 1, 
+                imageWidth,
+                2,
+            )
         }
     }
     
@@ -475,7 +353,7 @@ class AnimeGrid {
     }
     
     downloadImage(){
-        const fileName = `[神奇海螺][${this.title}].jpg`;
+        const fileName = `${this.title}.jpg`;
         const mime = 'image/jpeg';
         const imgURL = this.canvas.toDataURL(mime,0.8);
         const linkEl = document.createElement('a');
@@ -485,66 +363,8 @@ class AnimeGrid {
         document.body.appendChild(linkEl);
         linkEl.click();
         document.body.removeChild(linkEl);
-        new Image().src = `${APIURL}grid?ids=${this.getBangumiIdsText()}`;
     
        this.showOutput(imgURL);
     }
 
 }
-
-
-
-
-// 提前准备一份缓存
-Caches[`${APIURL}animes`] = [
-	{
-		"id": 10380,
-		"title": "命运石之门"
-	},
-	{
-		"id": 9717,
-		"title": "魔法少女小圆"
-	},
-	{
-		"id": 265,
-		"title": "新世纪福音战士"
-	},
-	{
-		"id": 10639,
-		"title": "Fate/Zero"
-	},
-	{
-		"id": 27364,
-		"title": "冰菓"
-	},
-	{
-		"id": 876,
-		"title": "CLANNAD ～AFTER STORY～"
-	},
-	{
-		"id": 10440,
-		"title": "我们仍未知道那天所看见的花的名字。"
-	},
-	{
-		"id": 55770,
-		"title": "进击的巨人"
-	},
-	{
-		"id": 51,
-		"title": "CLANNAD"
-	},
-	{
-		"id": 1428,
-		"title": "钢之炼金术师 FULLMETAL ALCHEMIST"
-	},
-	{
-		"id": 160209,
-		"title": "你的名字。"
-	},
-	{
-		"id": 909,
-		"title": "龙与虎"
-	}
-]
-
-

@@ -1,52 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-cmn-Hans">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>动画生涯个人喜好表生成器 - 神奇海螺试验场</title>
-    <meta name=keywords content="动画生涯,个人喜好表生成器,神奇海螺试验场,magiconch,卜卜口">
+    <title>「小横竖2023夏日曲推」生成器 | 小横竖相关收集站</title>
     <link rel="stylesheet" href="document.css">
 </head>
 <body>
     <div class="anime-grid-box"></div>
-    <div class="more-link-box">
-        <a href="ex.html">不够填？来试试格子超多的扩展版</a>
-    </div>
     <footer>
-        <a href="https://lab.magiconch.com/" target="_blank">神奇海螺试验场</a>
-        <a href="https://weibo.com/reiove" target="_blank">@卜卜口</a>
-        <a href="https://github.com/itorr/anime-grid" target="_blank">GitHub</a>
-        <span>动画信息来自 <a href="https://bgm.tv/" target="_blank">番组计划</a></span>
+        <a href="/" target="_blank">小横竖相关收集站</a>
+        <a href="/activity#曲推" target="_blank">小横竖2023夏日曲推</a>
+        <a href="https://github.com/xiaohengshu/vocal-grid-2023summer" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <span>修改自 <a href="https://github.com/itorr/anime-grid" target="_blank" rel="noopener noreferrer">itorr/anime-grid</a><a href="https://weibo.com/reiove" target="_blank" rel="noopener noreferrer">@卜卜口</a></span>
     </footer>
     <script src="anime-grid.js"></script>
 <script>
-const typeTexts = `入坑作
-最喜欢
-看最多次
-最想安利
+const typeTexts = `
+深夜听的
+代表夏日的
+调教很神的
+旅行时听的
 
-最佳剧情
-最佳画面
-最佳配乐
-最佳配音
+开心时就会不自觉哼起来的
+适合跑步时听的
+关于别离的
+很生草的
 
-最治愈
-最感动
-最虐心
-最被低估
+雨天听的
+听了能助眠的
+温柔的
+伤感的
 
-最过誉
-最离谱
-最讨厌
+对你有着特殊意义的
+关于自家cp的
+删稿了的
+古早的
+
+不太热门但你很喜欢的
+学习或工作时听的
+甜蜜的
+很欲的
+
+并不完美的
+多人合唱的
+既安心又惆怅的
+跨语种的
+
+很有魔法感的
+恐怖的
+叙事向的
+送给未来的
 `;
 new AnimeGrid({
     el: document.querySelector('.anime-grid-box'),
-    title: '动画生涯个人喜好表',
-    key: 'margiconch-animes-grid',
+    title: '小横竖2023夏日曲推',
+    key: 'xiaohengshu-vocal-grid-2023summer',
     typeTexts,
-    col: 5,
-    row: 3,
+    col: 4,
+    row: 7,
+    urlExt: 'https://xiaohengshu.eggry.com/vocal-grid-2023summer'
 })
 </script>
 </body>
