@@ -21,7 +21,7 @@ jobs:
           mkdir dist
           cp html/*.css html/*.html html/*.js simple.jpg dist
       - name: Release dist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: vocal-grid-2023summer
           path: dist
